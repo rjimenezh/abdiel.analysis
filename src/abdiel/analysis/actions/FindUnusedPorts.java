@@ -3,6 +3,7 @@ package abdiel.analysis.actions;
 import org.eclipse.emf.common.util.EList;
 
 import circuit.Circuit;
+import circuit.GenericAtmelUC;
 import circuit.Part;
 import circuit.Port;
 import circuit.PortConnection;
@@ -26,7 +27,8 @@ public class FindUnusedPorts extends CircuitAnalysisAction {
 		EList<PortConnection> portConns = circuit.getPortConns();
 		//
 		for(Part eachPart : circuit.getParts()) {
-			// TODO skip generic ucs
+			if(eachPart instanceof GenericAtmelUC)
+				continue;
 			for(Port eachPort : eachPart.getPorts()) {
 				if(isUnconnected(eachPort, portConns))
 					System.err.println(eachPort.getName() + " is unused");
