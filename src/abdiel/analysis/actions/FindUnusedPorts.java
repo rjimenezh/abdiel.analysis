@@ -22,6 +22,14 @@ import circuit.PortConnection;
  */
 public class FindUnusedPorts extends CircuitAnalysisAction {
 
+	/**
+	 * Goes through the list of circuit parts
+	 * and for each part that is not a 
+	 * generic micro-controller, analyzes ports
+	 * and finds unconnected ports.
+	 * 
+	 * @circuit ABDIEL circuit to analyze.
+	 */
 	@Override
 	public void analyze(Circuit circuit) {
 		for(Part eachPart : circuit.getParts()) {
@@ -34,6 +42,15 @@ public class FindUnusedPorts extends CircuitAnalysisAction {
 		}
 	}
 	
+	/**
+	 * Determines whether there are no connections
+	 * to a port.  Traverses the model to get the
+	 * list of port connections on the port's containing
+	 * circuit.
+	 * 
+	 * @param port Port to check for connectedness
+	 * @return True if the port has no connections, false otherwise
+	 */
 	protected boolean isUnconnected(Port port) {
 		boolean unConnected = true;
 		Part part = (Part)port.eContainer();
