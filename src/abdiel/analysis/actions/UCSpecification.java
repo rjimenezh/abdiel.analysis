@@ -115,7 +115,7 @@ public class UCSpecification implements Comparable<UCSpecification> {
 	 * Determines whether this specification defines a
 	 * micro-controller that's "smaller", same as, or 
 	 * "bigger" than the passed-in specification.  The
-	 * ranking criteria is:
+	 * comparison criteria is:
 	 * 
 	 * o Digital pins
 	 * o Analog pins
@@ -129,33 +129,15 @@ public class UCSpecification implements Comparable<UCSpecification> {
 	 */
 	@Override
 	public int compareTo(UCSpecification otherSpec) {
-		if(digitalPins < otherSpec.digitalPins)
-			return SMALLER_THAN_OTHER;
-		else if(digitalPins > otherSpec.digitalPins)
-			return BIGGER_THAN_OTHER;
-		
-		if(analogPins < otherSpec.analogPins)
-			return SMALLER_THAN_OTHER;
-		else if(analogPins > otherSpec.analogPins)
-			return BIGGER_THAN_OTHER;
-		
-		if(!hasUART && otherSpec.hasUART)
-			return SMALLER_THAN_OTHER;
-		else if(hasUART && !otherSpec.hasUART)
-			return BIGGER_THAN_OTHER;
+		boolean meetsDigitalPins = (digitalPins >= otherSpec.digitalPins);
+		boolean meetsAnalogPins = (analogPins >= otherSpec.analogPins);
+		boolean meetsUART = hasUART || !(otherSpec.hasUART);
+		boolean meetsUSART = hasUSART || !(otherSpec.hasUSART);
+		boolean meetsUSI = hasUSI || !(otherSpec.hasUSI);
 
-		if(!hasUSART && otherSpec.hasUSART)
-			return SMALLER_THAN_OTHER;
-		else if(hasUSART && !otherSpec.hasUSART)
-			return BIGGER_THAN_OTHER;
+		if(meetsDigitalPins && meetsAnalogPins && meetsUART && meetsUSART && meetsUSI)
+			return SAME_AS_OTHER;
 		
-		if(!hasUSI && otherSpec.hasUSI)
-			return SMALLER_THAN_OTHER;
-		else if(hasUSI && !otherSpec.hasUSI)
-			return BIGGER_THAN_OTHER;
-
-		// TODO SPI, TWI
-		
-		return SAME_AS_OTHER;
+		return SMALLER_THAN_OTHER;
 	}
 }

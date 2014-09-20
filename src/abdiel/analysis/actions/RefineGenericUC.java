@@ -100,14 +100,14 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	 */
 	protected void analyzeUC(GenericAtmelUC uc, EList<Wire> wires,
 	EList<PortConnection> portConns) {
+		System.err.println("----");
 		UCSpecification req = new UCSpecification(uc.getName());
 		req.setAnalogPins(countPinConns(uc, "analogPin", wires));
 		req.setDigitalPins(countPinConns(uc, "digitalPin", wires));
 		// TODO port connections
-		int index = Collections.binarySearch(candidateUCs, req);
-		if(index >= 0) {
-			UCSpecification candidate = candidateUCs.get(index);
-			System.err.println("You could use " + candidate.getName());
+		for(UCSpecification eachCandidate : candidateUCs) {
+			if(eachCandidate.compareTo(req) != UCSpecification.SMALLER_THAN_OTHER)
+				System.err.println("You could use " + eachCandidate.getName());
 		}
 	}
 
