@@ -1,6 +1,5 @@
 package abdiel.analysis.actions;
 
-import circuit.GenericAtmelUC;
 
 /**
  * The UCSpecification class defines attributes of
@@ -94,21 +93,6 @@ public class UCSpecification implements Comparable<UCSpecification> {
 
 	public void setHasUSI(boolean hasUSI) {
 		this.hasUSI = hasUSI;
-	}
-
-	/**
-	 * Validates whether this specification
-	 * matches the requirements of the specified
-	 * generic micro-controller.
-	 * 
-	 * @param requiredUC UC for which a refinement is required
-	 * @return whether this specification matches the required UC's specs
-	 */
-	public boolean matches(GenericAtmelUC requiredUC) {
-		// Count digital pin connections
-		// Count analog pin connections
-		// Validate external crystal connection
-		return false;
 	}
 
 	/**
