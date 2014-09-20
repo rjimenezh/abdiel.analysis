@@ -24,20 +24,22 @@ public class FindUnusedPorts extends CircuitAnalysisAction {
 
 	@Override
 	public void analyze(Circuit circuit) {
-		EList<PortConnection> portConns = circuit.getPortConns();
-		//
 		for(Part eachPart : circuit.getParts()) {
 			if(eachPart instanceof GenericAtmelUC)
 				continue;
 			for(Port eachPort : eachPart.getPorts()) {
-				if(isUnconnected(eachPort, portConns))
+				if(isUnconnected(eachPort))
 					System.err.println(eachPort.getName() + " is unused");
 			}
 		}
 	}
 	
-	protected boolean isUnconnected(Port port, EList<PortConnection> portConns) {
+	protected boolean isUnconnected(Port port) {
 		boolean unConnected = true;
+		Part part = (Part)port.eContainer();
+		Circuit ckt = (Circuit)part.eContainer();
+		EList<PortConnection> portConns = ckt.getPortConns();
+		//
 		for(PortConnection eachConn : portConns) {
 			if(eachConn.getSource() == port || eachConn.getTarget() == port) {
 				unConnected = false;
