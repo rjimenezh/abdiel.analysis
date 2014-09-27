@@ -40,6 +40,12 @@ public class UCSpecification implements Comparable<UCSpecification> {
 	/** Does this uc have USI? */
 	protected boolean hasUSI;
 	
+	/** Does this uc support SPI? */
+	protected boolean hasSPI;
+	
+	/** Does this uc support TWI (I2C)? */
+	protected boolean hasTWI;
+	
 	/**
 	 * Default constructor.  Creates a new
 	 * micro-controller specification with
@@ -94,6 +100,22 @@ public class UCSpecification implements Comparable<UCSpecification> {
 	public void setHasUSI(boolean hasUSI) {
 		this.hasUSI = hasUSI;
 	}
+	
+	public void setHasSPI(boolean hasSPI) {
+		this.hasSPI = hasSPI;
+	}
+	
+	public boolean hasSPI() {
+		return hasSPI;
+	}
+	
+	public void setHasTWI(boolean hasTWI) {
+		this.hasTWI = hasTWI;
+	}
+	
+	public boolean hasTWI() {
+		return hasTWI;
+	}
 
 	/**
 	 * Determines whether this specification defines a
@@ -118,9 +140,12 @@ public class UCSpecification implements Comparable<UCSpecification> {
 		boolean meetsUART = hasUART || !(otherSpec.hasUART);
 		boolean meetsUSART = hasUSART || !(otherSpec.hasUSART);
 		boolean meetsUSI = hasUSI || !(otherSpec.hasUSI);
+		boolean meetsSPI = hasSPI || !(otherSpec.hasSPI);
+		boolean meetsTWI = hasTWI || !(otherSpec.hasTWI); 
 
-		if(meetsDigitalPins && meetsAnalogPins && meetsUART && meetsUSART && meetsUSI)
-			return SAME_AS_OTHER;
+		if(meetsDigitalPins && meetsAnalogPins && meetsUART
+			&& meetsUSART && meetsUSI && meetsSPI && meetsTWI)
+				return SAME_AS_OTHER;
 		
 		return SMALLER_THAN_OTHER;
 	}
