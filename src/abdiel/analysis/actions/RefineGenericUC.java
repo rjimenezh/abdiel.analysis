@@ -10,7 +10,6 @@ import circuit.Circuit;
 import circuit.GenericAtmelUC;
 import circuit.Part;
 import circuit.Pin;
-import circuit.PortConnection;
 import circuit.Wire;
 
 /**
@@ -81,12 +80,10 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	 */
 	@Override
 	public void analyze(Circuit circuit) {
-		EList<Wire> wires = circuit.getWires();
-		EList<PortConnection> portConns = circuit.getPortConns();
 		EList<Part> parts = circuit.getParts();
 		for(Part eachPart : parts)
 			if(eachPart instanceof GenericAtmelUC)
-				analyzeUC((GenericAtmelUC)eachPart, wires, portConns);
+				analyzeUC((GenericAtmelUC)eachPart);
 	}
 
 	/**
@@ -95,15 +92,12 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	 * to find a candidate specification that meets the requirements.
 	 * 
 	 * @param uc Generic micro-controller model to define requirements from
-	 * @param wires List of wires (joint connections)
-	 * @param portConns List of port connections
 	 */
-	protected void analyzeUC(GenericAtmelUC uc, EList<Wire> wires,
-	EList<PortConnection> portConns) {
+	protected void analyzeUC(GenericAtmelUC uc) {
 		System.err.println("----");
 		UCSpecification req = new UCSpecification(uc.getName());
-		req.setAnalogPins(countPinConns(uc, "analogPin", wires));
-		req.setDigitalPins(countPinConns(uc, "digitalPin", wires));
+		req.setAnalogPins(countPinConns(uc, "analogPin"));
+		req.setDigitalPins(countPinConns(uc, "digitalPin"));
 		// TODO port connections
 		for(UCSpecification eachCandidate : candidateUCs) {
 			if(eachCandidate.compareTo(req) != UCSpecification.SMALLER_THAN_OTHER)
@@ -119,7 +113,9 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	 * @param wires List of wires (joint connections) in circuit
 	 * @return Number of wires connecting to the specified pin
 	 */
-	protected int countPinConns(Part part, String pinName, EList<Wire> wires) {
+	protected int countPinConns(Part part, String pinName) {
+		Circuit ckt = (Circuit)part.eContainer();
+		EList<Wire> wires = ckt.getWires();
 		int pinConns = 0;
 		Pin pin = findPinByName(part, pinName);
 		for(Wire eachWire : wires)
