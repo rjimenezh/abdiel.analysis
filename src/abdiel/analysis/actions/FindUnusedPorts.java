@@ -1,12 +1,10 @@
 package abdiel.analysis.actions;
 
-import org.eclipse.emf.common.util.EList;
-
+import abdiel.analysis.AbdielUtils;
 import circuit.Circuit;
 import circuit.GenericAtmelUC;
 import circuit.Part;
 import circuit.Port;
-import circuit.PortConnection;
 
 /**
  * The FindUnusedPorts anaylsis action
@@ -36,33 +34,9 @@ public class FindUnusedPorts extends CircuitAnalysisAction {
 			if(eachPart instanceof GenericAtmelUC)
 				continue;
 			for(Port eachPort : eachPart.getPorts()) {
-				if(isUnconnected(eachPort))
+				if(AbdielUtils.isUnconnected(eachPort))
 					System.err.println(eachPort.getName() + " is unused");
 			}
 		}
-	}
-	
-	/**
-	 * Determines whether there are no connections
-	 * to a port.  Traverses the model to get the
-	 * list of port connections on the port's containing
-	 * circuit.
-	 * 
-	 * @param port Port to check for connectedness
-	 * @return True if the port has no connections, false otherwise
-	 */
-	protected boolean isUnconnected(Port port) {
-		boolean unConnected = true;
-		Part part = (Part)port.eContainer();
-		Circuit ckt = (Circuit)part.eContainer();
-		EList<PortConnection> portConns = ckt.getPortConns();
-		//
-		for(PortConnection eachConn : portConns) {
-			if(eachConn.getSource() == port || eachConn.getTarget() == port) {
-				unConnected = false;
-				break;
-			}
-		}
-		return unConnected;
 	}
 }

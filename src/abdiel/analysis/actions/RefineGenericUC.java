@@ -6,11 +6,10 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
 
+import abdiel.analysis.AbdielUtils;
 import circuit.Circuit;
 import circuit.GenericAtmelUC;
 import circuit.Part;
-import circuit.Pin;
-import circuit.Wire;
 
 /**
  * The RefineGenericUC analysis action finds instances
@@ -49,6 +48,8 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 		attiny85.setHasUART(false);
 		attiny85.setHasUSART(false);
 		attiny85.setHasUSI(true);
+		attiny85.setHasSPI(true);
+		attiny85.setHasTWI(false);
 		candidateUCs.add(attiny85);
 		//
 		UCSpecification attiny2313 = new UCSpecification("ATTiny2313");
@@ -57,6 +58,8 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 		attiny2313.setHasUART(true);
 		attiny2313.setHasUSART(true);
 		attiny2313.setHasUSI(true);
+		attiny2313.setHasSPI(true);
+		attiny2313.setHasTWI(false);
 		candidateUCs.add(attiny2313);
 		//
 		UCSpecification atmega328 = new UCSpecification("ATMega328P");
@@ -65,6 +68,8 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 		atmega328.setHasUART(true);
 		atmega328.setHasUSART(true);
 		atmega328.setHasUSI(true);
+		atmega328.setHasSPI(true);
+		atmega328.setHasTWI(true);
 		candidateUCs.add(atmega328);
 		// Important - sort the collection!
 		Collections.sort(candidateUCs);
@@ -96,48 +101,17 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	protected void analyzeUC(GenericAtmelUC uc) {
 		System.err.println("----");
 		UCSpecification req = new UCSpecification(uc.getName());
-		req.setAnalogPins(countPinConns(uc, "analogPin"));
-		req.setDigitalPins(countPinConns(uc, "digitalPin"));
-		// TODO port connections
+		req.setAnalogPins(AbdielUtils.countPinConns(uc, "analogPin"));
+		req.setDigitalPins(AbdielUtils.countPinConns(uc, "digitalPin"));
+		req.setHasUART(AbdielUtils.isConnected(uc, "UART"));
+		req.setHasUSART(AbdielUtils.isConnected(uc, "USART"));
+		req.setHasUSI(AbdielUtils.isConnected(uc, "USI"));
+		req.setHasSPI(AbdielUtils.isConnected(uc, "SPI"));
+		req.setHasTWI(AbdielUtils.isConnected(uc, "TWI"));
+		// 
 		for(UCSpecification eachCandidate : candidateUCs) {
 			if(eachCandidate.compareTo(req) != UCSpecification.SMALLER_THAN_OTHER)
 				System.err.println("You could use " + eachCandidate.getName());
 		}
-	}
-
-	/**
-	 * Counts how many wires are connected to a given part's pin.
-	 * 
-	 * @param part Part to determine number of incoming connections
-	 * @param pinName Name of specific pin whose connections will be counted
-	 * @param wires List of wires (joint connections) in circuit
-	 * @return Number of wires connecting to the specified pin
-	 */
-	protected int countPinConns(Part part, String pinName) {
-		Circuit ckt = (Circuit)part.eContainer();
-		EList<Wire> wires = ckt.getWires();
-		int pinConns = 0;
-		Pin pin = findPinByName(part, pinName);
-		for(Wire eachWire : wires)
-			if(eachWire.getSource() == pin || eachWire.getTarget() == pin)
-				pinConns++;
-				
-		return pinConns;
-	}
-	
-	/**
-	 * Finds a part's pin given its name.
-	 * 
-	 * @param part Part to search pin within
-	 * @param pinName Pin name within part
-	 * @return Pin with specified name within part, or <code>null</code>
-	 * 	if no such pin is found.
-	 */
-	protected Pin findPinByName(Part part, String pinName) {
-		for(Pin eachPin : part.getPins())
-			if(eachPin.getName().equals(pinName))
-				return eachPin;
-		
-		return null;
 	}
 }
