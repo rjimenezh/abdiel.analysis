@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="circuit.diagram.edit.parts.CircuitEditPart"
+            id="abdiel.analysis.circuitAnalysisContrib">
+         <menu
+               label="Analyze"
+               path="additions"
+               id="abdiel.analysis.analyzeMenu">
+            <separator
+                  name="analyzeGroup">
+            </separator>
+         </menu>
+         <action
+               label="Check port connections"
+               class="abdiel.analysis.actions.CheckPortConnections"
+               menubarPath="abdiel.analysis.analyzeMenu/analyzeGroup"
+               enablesFor="1"
+               id="abdiel.analysis.checkPortConns">
+         </action>
+         <action
+               class="abdiel.analysis.actions.FindUnusedPorts"
+               id="abdiel.analysis.findUnusedPorts"
+               label="Find unused ports"
+               menubarPath="abdiel.analysis.analyzeMenu/analyzeGroup">
+         </action>
+         <action
+               class="abdiel.analysis.actions.RefineGenericUC"
+               id="abdiel.analysis.actions.refineGenericUC"
+               label="Suggest concrete UC"
+               menubarPath="abdiel.analysis.analyzeMenu/analyzeGroup">
+         </action>
+         <action
+               class="abdiel.analysis.actions.CheckPolarity"
+               enablesFor="1"
+               id="abdiel.analysis.actions.checkPolarity"
+               label="Check polarity"
+               menubarPath="abdiel.analysis.analyzeMenu/analyzeGroup">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
