@@ -63,6 +63,9 @@ public class CheckPolarity extends CircuitAnalysisAction {
 								for(Pin candidateTP : transitivePins)
 									if(candidateTP.getPolarity() != pin.getPolarity())
 										System.err.println("Possible polarity issue: " + wire);
+								// Check transitive pin polarity acquired through
+								// wires coming to the opposite pin, not just through
+								// the part itself (via the "transitive" pin).
 								// This may be needed also for non-serialZ parts
 								EList<Pin> connectedPins = getConnectedPins(oppositePin);
 								for(Pin candidateCP : connectedPins)
