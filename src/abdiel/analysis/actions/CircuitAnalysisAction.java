@@ -1,5 +1,9 @@
 package abdiel.analysis.actions;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eclipse.gmf.runtime.notation.Diagram;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -55,6 +59,16 @@ public abstract class CircuitAnalysisAction implements IObjectActionDelegate {
 	 */
 	public final void run(IAction action) {
 		Diagram model = (Diagram)circuitEditPart.getModel();
+		IFile modelFile = WorkspaceSynchronizer.getFile(model.eResource());
+		try {
+			IMarker marker = modelFile.createMarker(IMarker.PROBLEM);
+			marker.setAttribute(IMarker.MESSAGE, "testing");
+			marker.setAttribute(IMarker.LOCATION, "1");
+			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+		}
+		catch(CoreException ce) {
+			System.err.println(ce);
+		}
 		Circuit circuit = (Circuit)model.getElement();
 		analyze(circuit);
 		/*
