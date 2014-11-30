@@ -1,5 +1,7 @@
 package abdiel.analysis.actions;
 
+import org.eclipse.core.resources.IMarker;
+
 import abdiel.analysis.AbdielUtils;
 import circuit.Circuit;
 import circuit.GenericAtmelUC;
@@ -34,8 +36,10 @@ public class FindUnusedPorts extends CircuitAnalysisAction {
 			if(eachPart instanceof GenericAtmelUC)
 				continue;
 			for(Port eachPort : eachPart.getPorts()) {
-				if(AbdielUtils.isUnconnected(eachPort))
-					System.err.println(eachPort.getName() + " is unused");
+				if(AbdielUtils.isUnconnected(eachPort)) {
+					String fqn = eachPart.getName() + "." + eachPort.getName();
+					addMarker(fqn, "Port " + fqn + " is unused", IMarker.SEVERITY_WARNING);
+				}
 			}
 		}
 	}

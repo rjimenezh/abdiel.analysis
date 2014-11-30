@@ -1,5 +1,8 @@
 package abdiel.analysis.actions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
@@ -40,6 +43,12 @@ public abstract class CircuitAnalysisAction implements IObjectActionDelegate {
 	/** Selected GMF CircuitEditPart of circuit being edited. */
 	protected CircuitEditPart circuitEditPart;
 	
+	/** Private reference to model file (to attach markers). */
+	private IFile modelFile;
+	
+	/** Action-specific feedback markers. */
+	private List<IMarker> markers;
+	
 	/**
 	 * Retrieves the shell reference from the workbench part.
 	 *  
@@ -59,17 +68,8 @@ public abstract class CircuitAnalysisAction implements IObjectActionDelegate {
 	 */
 	public final void run(IAction action) {
 		Diagram model = (Diagram)circuitEditPart.getModel();
-		IFile modelFile = WorkspaceSynchronizer.getFile(model.eResource());
-		try {
-			IMarker marker = modelFile.createMarker(IMarker.PROBLEM);
-			marker.setAttribute(IMarker.MESSAGE, "testing");
-			marker.setAttribute(IMarker.LOCATION, "1");
-			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
-		}
-		catch(CoreException ce) {
-			System.err.println(ce);
-		}
 		Circuit circuit = (Circuit)model.getElement();
+		setUpMarkerSupportElements(model);
 		analyze(circuit);
 		/*
 		MessageDialog.openInformation(
@@ -96,5 +96,48 @@ public abstract class CircuitAnalysisAction implements IObjectActionDelegate {
 	 * Carry out actual circuit analysis.
 	 */
 	public abstract void analyze(Circuit circuit);
-
+	
+	/**
+	 * Sets up marker support elements.  This:
+	 * (1) obtains a reference to the model file in
+	 * order to enable adding markers to it; (2) clears
+	 * any previous markers a concrete analysis action
+	 * may have emitted.
+	 * 
+	 * @param model Model element to resolve file for
+	 */
+	private void setUpMarkerSupportElements(Diagram model) {
+		modelFile = WorkspaceSynchronizer.getFile(model.eResource());
+		if(markers == null)
+			markers = new ArrayList<IMarker>();
+		try {
+			for(IMarker marker : markers)
+				marker.delete();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		markers.clear();
+	}
+	
+	/**
+	 * Allows concrete analysis actions to mark model elements with
+	 * their findings, enabling user feedback via platform-standard
+	 * elements.
+	 * 
+	 * @param location Model-specific context to which marker applies
+	 * @param message Message describing the analysis finding to report
+	 * @param severity Report's severity level
+	 */
+	protected void addMarker(String location, String message, int severity) {
+		try {
+			IMarker marker = modelFile.createMarker(IMarker.PROBLEM);
+			marker.setAttribute(IMarker.MESSAGE, message);
+			marker.setAttribute(IMarker.LOCATION, location);
+			marker.setAttribute(IMarker.SEVERITY, severity);
+			markers.add(marker);
+		}
+		catch(CoreException ce) {
+			System.err.println(ce);
+		}
+	}
 }
