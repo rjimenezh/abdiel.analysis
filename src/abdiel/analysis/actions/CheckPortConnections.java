@@ -65,7 +65,7 @@ public class CheckPortConnections extends CircuitAnalysisAction {
 			Port offendingPort = (sourceProto == null) ? source : target;
 			Part part = (Part)offendingPort.eContainer();
 			addMarker(part.getName() + "." + offendingPort.getName(),
-				offendingPort.getName() + " protocol cannot be null", IMarker.SEVERITY_ERROR);
+				offendingPort.getName() + "'s protocol cannot be null", IMarker.SEVERITY_ERROR);
 		}
 	}
 	
