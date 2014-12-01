@@ -1,5 +1,8 @@
 package abdiel.analysis;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.emf.common.util.EList;
 
 import circuit.Circuit;
@@ -7,6 +10,7 @@ import circuit.Part;
 import circuit.Pin;
 import circuit.Port;
 import circuit.PortConnection;
+import circuit.PortWiring;
 import circuit.Wire;
 
 /**
@@ -115,5 +119,24 @@ public class AbdielUtils {
 		if(port == null)
 			return false;
 		return !isUnconnected(port);
+	}
+	
+	/**
+	 * Finds and returns the list of port wirings attached
+	 * to a particular port.
+	 * 
+	 * @param port Port whose port wirings are desired
+	 * @return List of port wirings connected to the specified port
+	 */
+	public static List<PortWiring> getWiresFor(Port port) {
+		Part part = (Part)port.eContainer();
+		Circuit ckt = (Circuit)part.eContainer();
+		EList<PortWiring> wires = ckt.getPortWires();
+		List<PortWiring> wiresFor = new ArrayList<PortWiring>();
+		for(PortWiring eachWire : wires)
+			if(eachWire.getPort() == port)
+				wiresFor.add(eachWire);
+		
+		return wiresFor;
 	}
 }

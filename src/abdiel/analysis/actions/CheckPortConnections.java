@@ -1,10 +1,12 @@
 package abdiel.analysis.actions;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.eclipse.emf.common.util.EList;
+import org.eclipse.core.resources.IMarker;
 
+import abdiel.analysis.AbdielUtils;
 import circuit.Circuit;
 import circuit.Part;
 import circuit.Port;
@@ -52,16 +54,19 @@ public class CheckPortConnections extends CircuitAnalysisAction {
 	protected void checkProtocols(PortConnection conn) {
 		Port source = conn.getSource();
 		Port target = conn.getTarget();
-		System.err.println("Checking " + source.getName() + "->" + target.getName()
-			+ " protocols...");
 		String sourceProto = source.getProtocol();
 		String targetProto = target.getProtocol();
 		if(sourceProto != null && targetProto != null) {
 			if(!(sourceProto.equals(targetProto)))
-				System.err.println("Protocol mismatch");  // flag error
+				addMarker(source.getName() + "->" + target.getName(),
+					"Protocol mismatch in port connection", IMarker.SEVERITY_ERROR);
 		}
-		else
-			System.err.println("Null protocol"); // flag error
+		else {
+			Port offendingPort = (sourceProto == null) ? source : target;
+			Part part = (Part)offendingPort.eContainer();
+			addMarker(part.getName() + "." + offendingPort.getName(),
+				offendingPort.getName() + " protocol cannot be null", IMarker.SEVERITY_ERROR);
+		}
 	}
 	
 	/**
@@ -75,41 +80,44 @@ public class CheckPortConnections extends CircuitAnalysisAction {
 	protected void checkRoleConsistency(PortConnection conn) {
 		Port source = conn.getSource();
 		Port target = conn.getTarget();
-		System.err.println("Checking " + source.getName() + "->" + target.getName()
-			+ " roles...");
-		List<PortWiring> sourceWires = getWiresFor(source);
-		List<PortWiring> targetWires = getWiresFor(target);
-		List<String> roles = new ArrayList<String>();
+		List<PortWiring> sourceWires = AbdielUtils.getWiresFor(source);
+		List<PortWiring> targetWires = AbdielUtils.getWiresFor(target);
+		Map<String, PortWiring> rolesWires = new HashMap<String, PortWiring>();
 		for(PortWiring srcWire : sourceWires) {
 			if(srcWire.getPin() == null)
-				System.err.println("Unconnected src role"); // flag error
-			roles.add(srcWire.getRole());
+				addDisconectedRoleMarker(srcWire);
+			rolesWires.put(srcWire.getRole(), srcWire);
 		}
+		
 		for(PortWiring tgtWire : targetWires) {
 			if(tgtWire.getPin() == null)
-				System.err.println("Unconnected tgt role"); // flag error
-			roles.remove(tgtWire.getRole());
+				addDisconectedRoleMarker(tgtWire);
+			rolesWires.remove(tgtWire.getRole());
 		}
-		if(!(roles.isEmpty()))
-			System.err.println("Role mismatch"); // flag error
-	}
-	
-	/**
-	 * Finds and returns the list of port wirings attached
-	 * to a particular port.
-	 * 
-	 * @param port Port whose port wirings are desired
-	 * @return List of port wirings connected to the specified port
-	 */
-	protected List<PortWiring> getWiresFor(Port port) {
-		Part part = (Part)port.eContainer();
-		Circuit ckt = (Circuit)part.eContainer();
-		EList<PortWiring> wires = ckt.getPortWires();
-		List<PortWiring> wiresFor = new ArrayList<PortWiring>();
-		for(PortWiring eachWire : wires)
-			if(eachWire.getPort() == port)
-				wiresFor.add(eachWire);
 		
-		return wiresFor;
+		if(!rolesWires.isEmpty())
+			for(String role : rolesWires.keySet()) {
+				PortWiring wire = rolesWires.get(role);
+				Port port = wire.getPort();
+				Part part = (Part)port.eContainer();
+				addMarker(part.getName() + "." + port.getName() + "::" + role,
+					"Role " + role + " must also be declared on opposite port",
+					IMarker.SEVERITY_ERROR);
+			}
+	}
+
+	/**
+	 * Adds a user warning to signal that a wire
+	 * with no proper role/pin connection was found.
+	 * 
+	 * @param wire Wire to report error for
+	 */
+	protected void addDisconectedRoleMarker(PortWiring wire) {
+		String role =  wire.getRole();
+		Port port = wire.getPort();
+		Part part = (Part)port.eContainer();
+		addMarker(part.getName() + "." + port.getName() + "::" + role,
+			"Role " + role + " in " + port.getName() + " must be connected to a pin",
+			IMarker.SEVERITY_ERROR);
 	}
 }
