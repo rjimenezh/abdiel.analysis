@@ -2,9 +2,13 @@ package abdiel.analysis.actions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.jface.dialogs.MessageDialog;
 
 import abdiel.analysis.AbdielUtils;
 import circuit.Circuit;
@@ -26,13 +30,18 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	/** List of candidate concrete micro-controllers to refine generic ones into. */
 	protected List<UCSpecification> candidateUCs;
 	
+	/** List of proposed micro-controller refinements, grouped by applicable generic UC. */
+	protected Map<GenericAtmelUC, List<UCSpecification>> refinements;
+	
 	/**
 	 * Default constructor.  GMF seems
 	 * to call this exactly once and reuse
-	 * the instance repeatedly.
+	 * the instance repeatedly over the
+	 * editing instance's lifetime.
 	 */
 	public RefineGenericUC() {
 		initializeCandidateUCs();
+		refinements = new HashMap<GenericAtmelUC, List<UCSpecification>>();
 	}
 	
 	/**
@@ -89,6 +98,12 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 		for(Part eachPart : parts)
 			if(eachPart instanceof GenericAtmelUC)
 				analyzeUC((GenericAtmelUC)eachPart);
+		//
+		MessageDialog.openInformation(
+			shell,
+			"Generic Microcontroller Refinement Results",
+			getRefinementResults());
+		
 	}
 
 	/**
@@ -99,7 +114,6 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 	 * @param uc Generic micro-controller model to define requirements from
 	 */
 	protected void analyzeUC(GenericAtmelUC uc) {
-		System.err.println("----");
 		UCSpecification req = new UCSpecification(uc.getName());
 		req.setAnalogPins(AbdielUtils.countPinConns(uc, "analogPin"));
 		req.setDigitalPins(AbdielUtils.countPinConns(uc, "digitalPin"));
@@ -111,7 +125,60 @@ public class RefineGenericUC extends CircuitAnalysisAction {
 		// 
 		for(UCSpecification eachCandidate : candidateUCs) {
 			if(eachCandidate.compareTo(req) != UCSpecification.SMALLER_THAN_OTHER)
-				System.err.println("You could use " + eachCandidate.getName());
+				logRefinement(uc, eachCandidate);
 		}
+	}
+	
+	/**
+	 * Logs the specified concrete micro-controller as a suitable
+	 * refinement for the specified generic micro-controller.
+	 * 
+	 * @param uc Generic UC for which a concrete refinement has been found
+	 * @param ucSpec Concrete refinement found for the specified generic UC
+	 */
+	protected void logRefinement(GenericAtmelUC uc, UCSpecification ucSpec) {
+		List<UCSpecification> concreteUCs = refinements.get(uc);
+		if(concreteUCs == null) {
+			concreteUCs = new ArrayList<UCSpecification>();
+			refinements.put(uc, concreteUCs);
+		}
+		concreteUCs.add(ucSpec);
+	}
+	
+	/**
+	 * Prepares the refinement results report.
+	 * 
+	 * @return A user-friendly string detailing the refinement results
+	 */
+	protected String getRefinementResults() {
+		// Scenario 1: no UCs to refine
+		Set<GenericAtmelUC> genericUCs = refinements.keySet();
+		if(genericUCs.isEmpty())
+			return "The circuit has no generic micro-controllers to refine";
+		// Scenario 2: no refinements found
+		int nRefinements = 0;
+		for(GenericAtmelUC genUC : genericUCs) {
+			List<UCSpecification> concreteUCs = refinements.get(genUC);
+			if(concreteUCs != null)
+				nRefinements += concreteUCs.size();
+		}
+		if(nRefinements == 0)
+			return "No suitable refinements were found for the "
+				+ "generic-microcontrollers in the circuit";
+		// Scenario 3: refinements found for generic UCs
+		StringBuilder results = new StringBuilder();
+		results.append("The following refinements were found for the specified ")
+			.append("generic micro-controllers in this circuit:\n\n");
+		for(GenericAtmelUC genUC : genericUCs) {
+			List<UCSpecification> concreteUCs = refinements.get(genUC);
+			if(concreteUCs != null) {
+				results.append("* ").append(genUC.getName()).append(":\n");
+				for(UCSpecification concreteUC : concreteUCs)
+					results.append("\t-")
+						.append(concreteUC.getName())
+						.append(" is a suitable refinement\n");
+			}
+		}
+		return results.toString();
 	}
 }
